@@ -1,3 +1,9 @@
+spring:
+  security:
+    user:
+      name: admin
+      password: 123456
+
 logging:
   level:
     root: debug
