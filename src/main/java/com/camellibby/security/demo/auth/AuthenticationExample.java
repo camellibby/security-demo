@@ -1,4 +1,4 @@
-package com.camellibby.security.demo;
+package com.camellibby.security.demo.auth;
 
 import org.springframework.security.authentication.*;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -22,14 +22,23 @@ import java.util.*;
  * @author luoxinliang
  */
 public class AuthenticationExample {
-//    private static AuthenticationManager am = new SampleAuthenticationManager();
+    /**
+     * 第一种方式：使用自定义AuthenticationManager
+     */
+    private static AuthenticationManager am = new SampleAuthenticationManager();
 
-//    public static AuthenticationProvider provider = new SimpleAuthenticationProvider();
-//    public static List<AuthenticationProvider> providers = Arrays.asList(provider);
-//    public static AuthenticationManager am = new ProviderManager(providers);
+    /**
+     * 第二种方式：使用SpringSecurity的AuthenticationManager 和 自定义AuthenticationProvider
+     */
+//    private static AuthenticationProvider provider = new SimpleAuthenticationProvider();
+//    private static List<AuthenticationProvider> providers = Collections.singletonList(provider);
+//    private static AuthenticationManager am = new ProviderManager(providers);
 
-    public static List<AuthenticationProvider> providers = Arrays.asList(getDaoAuthentication());
-    public static AuthenticationManager am = new ProviderManager(providers);
+    /**
+     * 第三种方式：使用SpringSecurity的AuthenticationManager 和 SpringSecurity的AuthenticationProvider
+     */
+//    private static List<AuthenticationProvider> providers = Collections.singletonList(getDaoAuthentication());
+//    private static AuthenticationManager am = new ProviderManager(providers);
 
     public static void main(String[] args) throws Exception {
         BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
@@ -52,7 +61,7 @@ public class AuthenticationExample {
                 SecurityContextHolder.getContext().getAuthentication());
     }
 
-    public static AuthenticationProvider getDaoAuthentication() {
+    private static AuthenticationProvider getDaoAuthentication() {
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
         PasswordEncoder passwordEncoder = PasswordEncoderFactories.createDelegatingPasswordEncoder();
         UserDetails admin = User.withUsername("admin")
@@ -63,43 +72,5 @@ public class AuthenticationExample {
         provider.setPasswordEncoder(passwordEncoder);
         provider.setUserDetailsService(uds);
         return provider;
-    }
-}
-
-class SampleAuthenticationManager implements AuthenticationManager {
-    static final List<GrantedAuthority> AUTHORITIES = new ArrayList<>();
-
-    static {
-        AUTHORITIES.add(new SimpleGrantedAuthority("ROLE_USER"));
-    }
-
-    public Authentication authenticate(Authentication auth) throws AuthenticationException {
-        if (auth.getName().equals(auth.getCredentials())) {
-            return new UsernamePasswordAuthenticationToken(auth.getName(),
-                    auth.getCredentials(), AUTHORITIES);
-        }
-        throw new BadCredentialsException("Bad Credentials");
-    }
-}
-
-class SimpleAuthenticationProvider implements AuthenticationProvider {
-    static final List<GrantedAuthority> AUTHORITIES = new ArrayList<>();
-
-    static {
-        AUTHORITIES.add(new SimpleGrantedAuthority("ROLE_USER"));
-    }
-
-    @Override
-    public Authentication authenticate(Authentication auth) throws AuthenticationException {
-        if (auth.getName().equals(auth.getCredentials())) {
-            return new UsernamePasswordAuthenticationToken(auth.getName(),
-                    auth.getCredentials(), AUTHORITIES);
-        }
-        throw new BadCredentialsException("Bad Credentials");
-    }
-
-    @Override
-    public boolean supports(Class<?> authentication) {
-        return (UsernamePasswordAuthenticationToken.class.isAssignableFrom(authentication));
     }
 }

@@ -18,7 +18,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
-import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import javax.sql.DataSource;
@@ -27,67 +26,47 @@ import java.util.Collections;
 @EnableWebSecurity
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Autowired
-    PasswordEncoder passwordEncoder;
+    private PasswordEncoder passwordEncoder;
 
-    @Autowired
-    DataSource dataSource;
+//    @Autowired
+    private DataSource dataSource;
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        http.authorizeRequests()
+        // @formatter:off
+        http
+            .authorizeRequests()
                 // 指定home页面可以匿名访问
                 .antMatchers("/", "/home").permitAll()
                 // 其它所有页面需要身份认证
                 .anyRequest().authenticated()
-                .and()
+            .and()
                 // 采用httpBasic方式登录，也就是弹出一个用户名和密码的对话框
                 //.httpBasic()
                 // 采用form提交方式登录
                 .formLogin()
                 .loginPage("/login")
                 .permitAll()
-                .and()
+            .and()
                 .logout()
                 .permitAll();
+        // @formatter:on
     }
 
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-        auth.inMemoryAuthentication()
-                .withUser("tester")
-                .password(passwordEncoder.encode("123456"))
-                .authorities("tester")
-                .and()
-                .withUser("user")
-                .password(passwordEncoder.encode("123456"))
-                .authorities("user");
-
-//        auth.jdbcAuthentication()
-//                .dataSource(dataSource)
-//                // 下面的方法会运行数据表初始化脚本，前提是你的数据库支持varchar_ignorecase字段类型
-////                .withDefaultSchema()
-//                // 使用自定义sql查询用户信息
-//                .usersByUsernameQuery("select username,password,enabled from users " + "where username = ?")
-//                .withUser("tester")
-//                .password(passwordEncoder.encode("123456"))
-//                .authorities("tester")
-//                .and()
-//                .withUser("user")
-//                .password(passwordEncoder.encode("123456"))
-//                .authorities("tester");
-
-//        auth.ldapAuthentication()
-//                .userDnPatterns("uid={0},ou=people")
-//                .groupSearchBase("ou=groups");
-//
+        /*
+         * 第一种验证方式：自定义AuthenticationProvider
+         */
 //        auth.authenticationProvider(new AuthenticationProvider() {
 //            @Override
 //            public Authentication authenticate(Authentication authentication) throws AuthenticationException {
 //                String username = authentication.getName();
-//                if (authentication.getCredentials() == null)
+//                if (authentication.getCredentials() == null) {
 //                    throw new BadCredentialsException("Bad credentials");
+//                }
 //                String password = authentication.getCredentials().toString();
-//                if( "user".equals(username) && "123456".equals(password)) {
+//                if ("admin".equals(username) && "123456".equals(password)) {
 //                    UsernamePasswordAuthenticationToken result = new UsernamePasswordAuthenticationToken(
 //                            authentication.getPrincipal(), authentication.getCredentials(),
 //                            authentication.getAuthorities());
@@ -100,24 +79,73 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 //
 //            @Override
 //            public boolean supports(Class<?> authentication) {
-//                return (UsernamePasswordAuthenticationToken.class
-//                        .isAssignableFrom(authentication));
+//                return (UsernamePasswordAuthenticationToken.class.isAssignableFrom(authentication));
 //            }
 //        });
 
+        /*
+         * 第二种验证方式：SpringSecurity的AuthenticationProvider 和 自定义UserDetailsService
+         */
 //        auth.userDetailsService(new UserDetailsService() {
 //            @Override
 //            public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-//                if ("user".equals(username)) {
+//                if ("admin".equals(username)) {
 //                    return new User(
 //                            "user",
 //                            passwordEncoder.encode("123456"),
-//                            Collections.singletonList(new SimpleGrantedAuthority("user")
+//                            Collections.singletonList(new SimpleGrantedAuthority("admin")
 //                            ));
 //                }
 //                return null;
 //            }
 //        });
+
+        /*
+         * 第三种验证方式：SpringSecurity的AuthenticationProvider 和 SpringSecurity提供的UserDetailsService
+         */
+        /*
+          第一种获取用户方式：使用内存中的用户信息，InMemoryUserDetailsManager
+         */
+        // @formatter:off
+        auth
+            .inMemoryAuthentication()
+                .withUser("user")
+                .password(passwordEncoder.encode("123456"))
+                .authorities("user")
+            .and()
+                .withUser("admin")
+                .password(passwordEncoder.encode("123456"))
+                .authorities("admin");
+        // @formatter:on
+
+        /*
+         * 第二种获取用户方式：使用数据库中的用户信息，JdbcUserDetailsManager
+         */
+        // @formatter:off
+//        auth
+//            .jdbcAuthentication()
+//                .dataSource(dataSource)
+//                // 下面的方法会运行数据表初始化脚本，前提是你的数据库支持varchar_ignorecase字段类型
+//                //.withDefaultSchema()
+//                // 使用自定义sql查询用户信息
+//                .usersByUsernameQuery("select username,password,enabled from users " + "where username = ?")
+//            .withUser("user")
+//                .password(passwordEncoder.encode("123456"))
+//                .authorities("user")
+//            .and()
+//                .withUser("admin")
+//                .password(passwordEncoder.encode("123456"))
+//                .authorities("tester");
+        // @formatter:on
+
+        /*
+         * 第三种验证方式：配置application.yml文件
+         */
+        // spring:
+        //  security:
+        //    user:
+        //      name: admin
+        //      password: 123456
     }
 
     @Override
@@ -128,6 +156,5 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Bean
     public PasswordEncoder passwordEncoder() {
         return PasswordEncoderFactories.createDelegatingPasswordEncoder();
-//        return NoOpPasswordEncoder.getInstance();
     }
 }

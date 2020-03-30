@@ -1,14 +1,12 @@
 spring:
-  security:
-    user:
-      name: admin
-      password: 123456
+#  security:
+#    user:
+#      name: admin
+#      password: 123456
   datasource:
     type: com.zaxxer.hikari.HikariDataSource
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    username: root
-    password: 123456
-    url: jdbc:mysql://127.0.0.1:3306/test?characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=false
+    driver-class-name: org.h2.Driver
+    url: jdbc:h2:~/security-demo/security-db;AUTO_SERVER=TRUE;AUTO_SERVER_PORT=9093;DB_CLOSE_DELAY=-1
 
 logging:
   level:
