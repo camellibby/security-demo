@@ -29,7 +29,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     private PasswordEncoder passwordEncoder;
 
 //    @Autowired
-    private DataSource dataSource;
+//    private DataSource dataSource;
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
